@@ -1,55 +1,100 @@
 service: laravel
 
-# Set your team ID if you are using Bref Cloud
 bref:
-   team: laravel-aws
+  team: laravel-aws
 
 provider:
-    name: aws
-    # The AWS region in which to deploy (us-east-1 is the default)
-    region: us-east-1
-    # Environment variables
-    environment:
-        APP_ENV: production # Or use ${sls:stage} if you want the environment to match the stage
-        SESSION_DRIVER: cookie # Change to database if you have set up a database
+  name: aws
+  region: us-east-1
+  environment:
+    APP_ENV: production
+    SESSION_DRIVER: cookie
+    QUEUE_CONNECTION: sqs
+    FILESYSTEM_DISK: s3
+    S3_BUCKET: ${cf:laravel.S3Bucket} # reference the created S3 bucket
+    DB_CONNECTION: mysql
+    DB_HOST: ${cf:laravel.RDSInstanceEndpoint}
+    DB_PORT: 3306
+    DB_DATABASE: laravel
+    DB_USERNAME: laravel
+    DB_PASSWORD: laravelpass
+    AWS_DEFAULT_REGION: us-east-1
 
 package:
-    # Files and directories to exclude from deployment
-    patterns:
-        - '!node_modules/**'
-        - '!public/storage'
-        - '!resources/assets/**'
-        - '!resources/css/**'
-        - '!resources/images/**'
-        - '!resources/js/**'
-        - '!storage/**'
-        - '!tests/**'
-        - '!database/*.sqlite'
-        # Exclude assets except for the manifest file
-        - '!public/build/**'
-        - 'public/build/manifest.json'
+  patterns:
+    - '!node_modules/**'
+    - '!public/storage'
+    - '!resources/assets/**'
+    - '!resources/css/**'
+    - '!resources/images/**'
+    - '!resources/js/**'
+    - '!storage/**'
+    - '!tests/**'
+    - '!database/*.sqlite'
+    - '!public/build/**'
+    - 'public/build/manifest.json'
 
 functions:
+  web:
+    handler: public/index.php
+    runtime: php-82-fpm
+    timeout: 28
+    events:
+      - httpApi: '*'
 
-    # This function runs the Laravel website/API
-    web:
-        handler: public/index.php
-        runtime: php-82-fpm
-        timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
-        events:
-            - httpApi: '*'
+  artisan:
+    handler: artisan
+    runtime: php-82-console
+    timeout: 720
+    # Optional: run Laravel schedule every minute
+    # events:
+    #   - schedule:
+    #       rate: rate(1 minute)
+    #       input: '"schedule:run"'
 
-    # This function lets us run artisan commands in Lambda
-    artisan:
-        handler: artisan
-        runtime: php-82-console
-        timeout: 720 # in seconds
-        # Uncomment to also run the scheduler every minute
-        #events:
-        #    - schedule:
-        #          rate: rate(1 minute)
-        #          input: '"schedule:run"'
+resources:
+  Resources:
 
-plugins:
-    # We need to include the Bref plugin
-    - ./vendor/bref/bref
+    # 📁 S3 Bucket for file storage
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub '${AWS::StackName}-storage'
+        AccessControl: PublicRead #makes all uploaded objects publicly readable
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+
+    # 🐘 RDS Instance (MySQL)
+    RDSInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceIdentifier: !Sub '${AWS::StackName}-db'
+        Engine: mysql
+        EngineVersion: 8.0.35
+        DBInstanceClass: db.t3.micro   #Free Tier eligible
+        AllocatedStorage: 20           #Up to 20GB free
+        StorageType: gp2               #Default general purpose SSD
+        MasterUsername: laravel
+        MasterUserPassword: laravelpass
+        BackupRetentionPeriod: 0
+        PubliclyAccessible: true
+        DeletionProtection: false
+        MultiAZ: false                 #Disable high availability (free tier doesn’t support)
+        AutoMinorVersionUpgrade: true
+
+    # 📬 SQS Queue for Laravel jobs
+    LaravelQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: laravel-queue
+
+  Outputs:
+    RDSInstanceEndpoint:
+      Value: !GetAtt RDSInstance.Endpoint.Address
+    S3Bucket:
+      Value: !Ref S3Bucket
+    LaravelQueueUrl:
+      Value: !Ref LaravelQueue
