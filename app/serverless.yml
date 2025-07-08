@@ -1,13 +1,14 @@
 service: laravel
 
-bref:
-  team: laravel-aws
+# bref:
+#   team: laravel-aws
 
 provider:
   name: aws
   region: us-east-1
   environment:
     APP_ENV: production
+    APP_KEY: base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=
     SESSION_DRIVER: cookie
     QUEUE_CONNECTION: sqs
     FILESYSTEM_DISK: s3
@@ -42,15 +43,23 @@ functions:
     events:
       - httpApi: '*'
 
-  artisan:
+  artisanSchedule:
+    handler: artisan
+    runtime: php-82-console
+    timeout: 120
+    events:
+      - schedule:
+          rate: rate(1 minute)
+          input: '"schedule:run"'
+
+  artisanQueue:
     handler: artisan
     runtime: php-82-console
     timeout: 720
-    # Optional: run Laravel schedule every minute
-    # events:
-    #   - schedule:
-    #       rate: rate(1 minute)
-    #       input: '"schedule:run"'
+    events:
+      - schedule:
+          rate: rate(1 minute)
+          input: '"queue:work --tries=3"'
 
 resources:
   Resources:

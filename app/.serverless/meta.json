@@ -1,0 +1,194 @@
+{
+  "/var/www/html/serverless.yml": {
+    "versionFramework": "4.17.1",
+    "servicePath": "/var/www/html/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "laravel",
+      "provider": {
+        "name": "aws",
+        "region": "us-east-1",
+        "environment": {
+          "APP_ENV": "production",
+          "APP_KEY": "base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=",
+          "SESSION_DRIVER": "cookie",
+          "QUEUE_CONNECTION": "sqs",
+          "FILESYSTEM_DISK": "s3",
+          "S3_BUCKET": "${cf:laravel.S3Bucket}",
+          "DB_CONNECTION": "mysql",
+          "DB_HOST": "${cf:laravel.RDSInstanceEndpoint}",
+          "DB_PORT": 3306,
+          "DB_DATABASE": "laravel",
+          "DB_USERNAME": "laravel",
+          "DB_PASSWORD": "<REDACTED>",
+          "AWS_DEFAULT_REGION": "us-east-1"
+        }
+      },
+      "package": {
+        "patterns": [
+          "!node_modules/**",
+          "!public/storage",
+          "!resources/assets/**",
+          "!resources/css/**",
+          "!resources/images/**",
+          "!resources/js/**",
+          "!storage/**",
+          "!tests/**",
+          "!database/*.sqlite",
+          "!public/build/**",
+          "public/build/manifest.json"
+        ]
+      },
+      "functions": {
+        "web": {
+          "handler": "public/index.php",
+          "runtime": "php-82-fpm",
+          "timeout": 28,
+          "events": [
+            {
+              "httpApi": "*"
+            }
+          ]
+        },
+        "artisanSchedule": {
+          "handler": "artisan",
+          "runtime": "php-82-console",
+          "timeout": 120,
+          "events": [
+            {
+              "schedule": {
+                "rate": "rate(1 minute)",
+                "input": "\"schedule:run\""
+              }
+            }
+          ]
+        },
+        "artisanQueue": {
+          "handler": "artisan",
+          "runtime": "php-82-console",
+          "timeout": 720,
+          "events": [
+            {
+              "schedule": {
+                "rate": "rate(1 minute)",
+                "input": "\"queue:work --tries=3\""
+              }
+            }
+          ]
+        }
+      },
+      "resources": {
+        "Resources": {
+          "S3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": {
+                "Fn::Sub": "${AWS::StackName}-storage"
+              },
+              "AccessControl": "PublicRead",
+              "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": false,
+                "BlockPublicPolicy": false,
+                "IgnorePublicAcls": false,
+                "RestrictPublicBuckets": false
+              }
+            }
+          },
+          "RDSInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+              "DBInstanceIdentifier": {
+                "Fn::Sub": "${AWS::StackName}-db"
+              },
+              "Engine": "mysql",
+              "EngineVersion": "8.0.35",
+              "DBInstanceClass": "db.t3.micro",
+              "AllocatedStorage": 20,
+              "StorageType": "gp2",
+              "MasterUsername": "laravel",
+              "MasterUserPassword": "<REDACTED>",
+              "BackupRetentionPeriod": 0,
+              "PubliclyAccessible": true,
+              "DeletionProtection": false,
+              "MultiAZ": false,
+              "AutoMinorVersionUpgrade": true
+            }
+          },
+          "LaravelQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "laravel-queue"
+            }
+          }
+        },
+        "Outputs": {
+          "RDSInstanceEndpoint": {
+            "Value": {
+              "Fn::GetAtt": [
+                "RDSInstance",
+                "Endpoint.Address"
+              ]
+            }
+          },
+          "S3Bucket": {
+            "Value": {
+              "Ref": "S3Bucket"
+            }
+          },
+          "LaravelQueueUrl": {
+            "Value": {
+              "Ref": "LaravelQueue"
+            }
+          }
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "region": "us-east-1",
+      "environment": {
+        "APP_ENV": "production",
+        "APP_KEY": "base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=",
+        "SESSION_DRIVER": "cookie",
+        "QUEUE_CONNECTION": "sqs",
+        "FILESYSTEM_DISK": "s3",
+        "S3_BUCKET": "${cf:laravel.S3Bucket}",
+        "DB_CONNECTION": "mysql",
+        "DB_HOST": "${cf:laravel.RDSInstanceEndpoint}",
+        "DB_PORT": 3306,
+        "DB_DATABASE": "laravel",
+        "DB_USERNAME": "laravel",
+        "DB_PASSWORD": "<REDACTED>",
+        "AWS_DEFAULT_REGION": "us-east-1"
+      }
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "error": {
+      "message": "Cannot resolve '${cf:laravel.RDSInstanceEndpoint}' variable at 'provider.environment.DB_HOST'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.",
+      "stack": "Error: Cannot resolve '${cf:laravel.RDSInstanceEndpoint}' variable at 'provider.environment.DB_HOST'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.\n    at _ResolverManager.resolve (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:31915)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async #handlePlaceholderNode (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:30122)\n    at async file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:27994\n    at async processNodeAndHandleCompletion (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:16773)",
+      "code": "MISSING_VARIABLE_RESULT"
+    },
+    "serviceRawFile": "service: laravel\n\n# bref:\n#   team: laravel-aws\n\nprovider:\n  name: aws\n  region: us-east-1\n  environment:\n    APP_ENV: production\n    APP_KEY: base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=\n    SESSION_DRIVER: cookie\n    QUEUE_CONNECTION: sqs\n    FILESYSTEM_DISK: s3\n    S3_BUCKET: ${cf:laravel.S3Bucket} # reference the created S3 bucket\n    DB_CONNECTION: mysql\n    DB_HOST: ${cf:laravel.RDSInstanceEndpoint}\n    DB_PORT: 3306\n    DB_DATABASE: laravel\n    DB_USERNAME: laravel\n    DB_PASSWORD: laravelpass\n    AWS_DEFAULT_REGION: us-east-1\n\npackage:\n  patterns:\n    - '!node_modules/**'\n    - '!public/storage'\n    - '!resources/assets/**'\n    - '!resources/css/**'\n    - '!resources/images/**'\n    - '!resources/js/**'\n    - '!storage/**'\n    - '!tests/**'\n    - '!database/*.sqlite'\n    - '!public/build/**'\n    - 'public/build/manifest.json'\n\nfunctions:\n  web:\n    handler: public/index.php\n    runtime: php-82-fpm\n    timeout: 28\n    events:\n      - httpApi: '*'\n\n  artisanSchedule:\n    handler: artisan\n    runtime: php-82-console\n    timeout: 120\n    events:\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"schedule:run\"'\n\n  artisanQueue:\n    handler: artisan\n    runtime: php-82-console\n    timeout: 720\n    events:\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"queue:work --tries=3\"'\n\nresources:\n  Resources:\n\n    # 📁 S3 Bucket for file storage\n    S3Bucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: !Sub '${AWS::StackName}-storage'\n        AccessControl: PublicRead #makes all uploaded objects publicly readable\n        PublicAccessBlockConfiguration:\n          BlockPublicAcls: false\n          BlockPublicPolicy: false\n          IgnorePublicAcls: false\n          RestrictPublicBuckets: false\n\n    # 🐘 RDS Instance (MySQL)\n    RDSInstance:\n      Type: AWS::RDS::DBInstance\n      Properties:\n        DBInstanceIdentifier: !Sub '${AWS::StackName}-db'\n        Engine: mysql\n        EngineVersion: 8.0.35\n        DBInstanceClass: db.t3.micro   #Free Tier eligible\n        AllocatedStorage: 20           #Up to 20GB free\n        StorageType: gp2               #Default general purpose SSD\n        MasterUsername: laravel\n        MasterUserPassword: laravelpass\n        BackupRetentionPeriod: 0\n        PubliclyAccessible: true\n        DeletionProtection: false\n        MultiAZ: false                 #Disable high availability (free tier doesn’t support)\n        AutoMinorVersionUpgrade: true\n\n    # 📬 SQS Queue for Laravel jobs\n    LaravelQueue:\n      Type: AWS::SQS::Queue\n      Properties:\n        QueueName: laravel-queue\n\n  Outputs:\n    RDSInstanceEndpoint:\n      Value: !GetAtt RDSInstance.Endpoint.Address\n    S3Bucket:\n      Value: !Ref S3Bucket\n    LaravelQueueUrl:\n      Value: !Ref LaravelQueue\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {},
+    "orgId": "de78f66a-6162-4dce-8bd9-e15f5f08b69c",
+    "orgName": "parthnakum37",
+    "userId": "GKglMdDfGgCJvkrLzp",
+    "userName": "parthnakum37",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
