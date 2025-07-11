@@ -3,23 +3,32 @@ service: laravel
 # bref:
 #   team: laravel-aws
 
+# frameworkVersion: '3'
+
+plugins:
+  - ./vendor/bref/bref
+
+
 provider:
   name: aws
-  region: us-east-1
+  region: ap-south-1
+  runtime: provided.al2
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - '*'
+          Resource: '*'
+  cfnRole: arn:aws:iam::870968578789:role/CloudFormationExecutionRole
   environment:
     APP_ENV: production
-    APP_KEY: base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=
-    SESSION_DRIVER: cookie
-    QUEUE_CONNECTION: sqs
-    FILESYSTEM_DISK: s3
-    S3_BUCKET: ${cf:laravel.S3Bucket} # reference the created S3 bucket
-    DB_CONNECTION: mysql
-    DB_HOST: ${cf:laravel.RDSInstanceEndpoint}
-    DB_PORT: 3306
-    DB_DATABASE: laravel
-    DB_USERNAME: laravel
-    DB_PASSWORD: laravelpass
-    AWS_DEFAULT_REGION: us-east-1
+    APP_DEBUG: false
+    # Inject dynamic base URL
+    APP_URL: https://${self:custom.apiGatewayBaseUrl}
+    BASE_URL: https://${self:custom.apiGatewayBaseUrl}/
+    OAUTH_REDIRECT_URL: https://${self:custom.apiGatewayBaseUrl}/login/github/callback
+    GOOGLE_REDIRECT: https://${self:custom.apiGatewayBaseUrl}/login/google/callback
 
 package:
   patterns:
@@ -38,25 +47,23 @@ package:
 functions:
   web:
     handler: public/index.php
-    runtime: php-82-fpm
+    runtime: provided.al2
+    layers:
+      - arn:aws:lambda:ap-south-1:534081306603:layer:php-82-fpm:100
     timeout: 28
     events:
       - httpApi: '*'
 
-  artisanSchedule:
+  artisan:
     handler: artisan
-    runtime: php-82-console
-    timeout: 120
+    runtime: provided.al2
+    layers:
+      - arn:aws:lambda:ap-south-1:534081306603:layer:php-82:100
+    timeout: 720
     events:
       - schedule:
           rate: rate(1 minute)
           input: '"schedule:run"'
-
-  artisanQueue:
-    handler: artisan
-    runtime: php-82-console
-    timeout: 720
-    events:
       - schedule:
           rate: rate(1 minute)
           input: '"queue:work --tries=3"'
@@ -64,19 +71,34 @@ functions:
 resources:
   Resources:
 
-    # 📁 S3 Bucket for file storage
+    #S3 Bucket for file storage
     S3Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub '${AWS::StackName}-storage'
-        AccessControl: PublicRead #makes all uploaded objects publicly readable
+        BucketName: !Sub '${AWS::StackName}-aws-storage'
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: BucketOwnerEnforced
         PublicAccessBlockConfiguration:
-          BlockPublicAcls: false
+          BlockPublicAcls: true
           BlockPublicPolicy: false
-          IgnorePublicAcls: false
+          IgnorePublicAcls: true
           RestrictPublicBuckets: false
 
-    # 🐘 RDS Instance (MySQL)
+    S3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref S3Bucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+                - s3:GetObject
+              Resource: !Sub '${S3Bucket.Arn}/*'
+
+    #RDS Instance (MySQL)
     RDSInstance:
       Type: AWS::RDS::DBInstance
       Properties:
@@ -94,7 +116,7 @@ resources:
         MultiAZ: false                 #Disable high availability (free tier doesn’t support)
         AutoMinorVersionUpgrade: true
 
-    # 📬 SQS Queue for Laravel jobs
+    #SQS Queue for Laravel jobs
     LaravelQueue:
       Type: AWS::SQS::Queue
       Properties:
@@ -107,3 +129,6 @@ resources:
       Value: !Ref S3Bucket
     LaravelQueueUrl:
       Value: !Ref LaravelQueue
+
+custom:
+  apiGatewayBaseUrl: https://qe813igdf9.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
