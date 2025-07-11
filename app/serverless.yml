@@ -49,7 +49,7 @@ functions:
     handler: public/index.php
     runtime: provided.al2
     layers:
-      - arn:aws:lambda:ap-south-1:534081306603:layer:php-82-fpm:100
+      - arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57
     timeout: 28
     events:
       - httpApi: '*'
@@ -58,7 +58,7 @@ functions:
     handler: artisan
     runtime: provided.al2
     layers:
-      - arn:aws:lambda:ap-south-1:534081306603:layer:php-82:100
+      - arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57
     timeout: 720
     events:
       - schedule:
@@ -131,4 +131,4 @@ resources:
       Value: !Ref LaravelQueue
 
 custom:
-  apiGatewayBaseUrl: https://qe813igdf9.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
+  apiGatewayBaseUrl: https://4u6j5wnd6b.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
