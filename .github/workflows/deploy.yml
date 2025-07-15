@@ -103,7 +103,7 @@ jobs:
 
       - name: Deploy Laravel to AWS Lambda
         working-directory: ./app
-        run: serverless deploy --stage production
+        run: serverless deploy --stage dev --key ${{ secrets.SERVERLESS_ACCESS_KEY }}
 
       - name: Run Migrations If Changed (After Deploy)
         working-directory: ./app
