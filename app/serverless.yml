@@ -3,7 +3,7 @@ service: laravel
 # bref:
 #   team: laravel-aws
 
-# frameworkVersion: '3'
+frameworkVersion: '4'
 
 plugins:
   - ./vendor/bref/bref
@@ -131,4 +131,4 @@ resources:
       Value: !Ref LaravelQueue
 
 custom:
-  apiGatewayBaseUrl: https://4u6j5wnd6b.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
+  apiGatewayBaseUrl: https://m4019tur1h.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
