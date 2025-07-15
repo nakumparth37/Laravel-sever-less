@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -104,8 +105,7 @@ Route::get('/clear-cache', function() {
 
 Route::controller(UserController::class)->group(function() {
     Route::prefix('admin')->middleware(['web', 'auth', 'checkRole:admin'])->group(function () {
-        Route::get('/user-listing', 'index')->name('users.indexs');
-        Route::post('/user-listing', 'index')->name('users.index');
+        Route::get('/get-users', 'index')->name('get.user.list');
         Route::post('/user-roles', [RoleController::class, 'getUserRoleList'])->name('user.roles');
 
         Route::get('user/edit-{id}', 'editUserData');
@@ -136,9 +136,9 @@ Route::controller(ProductController::class)->group(function() {
     Route::get('/product/{id}','getProductByID')->name('showProduct');
     Route::get('/products', 'getProductForHome')->name('productsList');
 
-    Route::get('/inStock/products/{stockCount}',function($stockCount){
-        $product = Product::stock($stockCount)->get();
-    });
+    // Route::get('/inStock/products/{stockCount}',function($stockCount){
+    //     $product = Product::stock($stockCount)->get();
+    // });
 });
 
 

@@ -38,8 +38,9 @@ jobs:
           echo "APP_NAME=Serverless-App" >> .env
           echo "APP_ENV=production" >> .env
           echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
-          echo "APP_DEBUG=false" >> .env
-          echo "APP_URL=https://m4019tur1h.execute-api.ap-south-1.amazonaws.com" >> .env
+          echo "APP_DEBUG=true" >> .env
+          echo "APP_URL=https://hfbrjygm7c.execute-api.ap-south-1.amazonaws.com" >> .env
+          echo "BASE_URL=https://hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/" >> .env
 
           echo "LOG_CHANNEL=stderr" >> .env
           echo "LOG_LEVEL=info" >> .env
@@ -77,11 +78,11 @@ jobs:
 
           echo "GITHUB_CLIENT_ID=${{ secrets.OAUTH_GITHUB_CLIENT_ID }}" >> .env
           echo "GITHUB_CLIENT_SECRET=${{ secrets.OAUTH_GITHUB_CLIENT_SECRET }}" >> .env
-          echo "OAUTH_REDIRECT_URL=https://m4019tur1h.execute-api.ap-south-1.amazonaws.com/login/github/callback" >> .env
+          echo "OAUTH_REDIRECT_URL=https://hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/login/github/callback" >> .env
 
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "GOOGLE_REDIRECT=https://m4019tur1h.execute-api.ap-south-1.amazonaws.com/login/google/callback" >> .env
+          echo "GOOGLE_REDIRECT=https://hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/login/google/callback" >> .env
 
           echo "PAYPAL_MODE=sandbox" >> .env
           echo "PAYPAL_SANDBOX_CLIENT_ID=${{ secrets.PAYPAL_SANDBOX_CLIENT_ID }}" >> .env

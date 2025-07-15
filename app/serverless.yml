@@ -23,12 +23,12 @@ provider:
   cfnRole: arn:aws:iam::870968578789:role/CloudFormationExecutionRole
   environment:
     APP_ENV: production
-    APP_DEBUG: false
+    APP_DEBUG: true
     # Inject dynamic base URL
-    APP_URL: https://${self:custom.apiGatewayBaseUrl}
-    BASE_URL: https://${self:custom.apiGatewayBaseUrl}/
-    OAUTH_REDIRECT_URL: https://${self:custom.apiGatewayBaseUrl}/login/github/callback
-    GOOGLE_REDIRECT: https://${self:custom.apiGatewayBaseUrl}/login/google/callback
+    APP_URL: ${self:custom.apiGatewayBaseUrl}
+    BASE_URL: ${self:custom.apiGatewayBaseUrl}/
+    OAUTH_REDIRECT_URL: ${self:custom.apiGatewayBaseUrl}/login/github/callback
+    GOOGLE_REDIRECT: ${self:custom.apiGatewayBaseUrl}/login/google/callback
 
 package:
   patterns:
@@ -131,4 +131,4 @@ resources:
       Value: !Ref LaravelQueue
 
 custom:
-  apiGatewayBaseUrl: https://m4019tur1h.execute-api.ap-south-1.amazonaws.com  #Update after first deploy
+  apiGatewayBaseUrl: hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/  #Update after first deploy

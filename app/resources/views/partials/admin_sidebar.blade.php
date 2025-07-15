@@ -5,7 +5,7 @@
     <hr>
     <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
-            <a href="{{ route('users.index') }}" class="nav-link " aria-current="page">
+            <a href="{{ route('get.user.list') }}" class="nav-link " aria-current="page">
                 <i class="fa-solid fa-user"></i>
                 User
             </a>

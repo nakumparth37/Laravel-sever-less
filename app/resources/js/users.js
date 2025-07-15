@@ -37,7 +37,7 @@ $(document).ready(function () {
 
     //Load the Uses Listing data-table
     var table = $('#user-listing-table').DataTable({
-        ajax: `${BASE_URL}admin/user-listing`,
+        ajax: `${BASE_URL}admin/get-users`,
         columns: [
             {data: 'id', name: 'id'},
             {data: 'profileImage', name: 'profileImage'},
