@@ -101,7 +101,7 @@ Route::get('/clear-cache', function() {
     Artisan::call('config:clear');
     Artisan::call('view:clear');
     // Optionally return a message
-    return "Cache cleared!";
+    return "Cache cleared!dfsfffd";
 });
 
 Route::controller(UserController::class)->group(function() {

@@ -131,4 +131,4 @@ resources:
       Value: !Ref LaravelQueue
 
 custom:
-  apiGatewayBaseUrl: https://hzbjgg356b.execute-api.ap-south-1.amazonaws.com
+  apiGatewayBaseUrl: https://23r7e4fei3.execute-api.ap-south-1.amazonaws.com
