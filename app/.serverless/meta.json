@@ -5,24 +5,554 @@
     "serviceConfigFileName": "serverless.yml",
     "service": {
       "service": "laravel",
+      "frameworkVersion": "4",
+      "plugins": [
+        "./vendor/bref/bref"
+      ],
       "provider": {
         "name": "aws",
-        "region": "us-east-1",
+        "region": "ap-south-1",
+        "runtime": "provided.al2",
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        },
+        "cfnRole": "arn:aws:iam::870968578789:role/CloudFormationExecutionRole",
         "environment": {
           "APP_ENV": "production",
-          "APP_KEY": "base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=",
-          "SESSION_DRIVER": "cookie",
-          "QUEUE_CONNECTION": "sqs",
-          "FILESYSTEM_DISK": "s3",
-          "S3_BUCKET": "${cf:laravel.S3Bucket}",
-          "DB_CONNECTION": "mysql",
-          "DB_HOST": "${cf:laravel.RDSInstanceEndpoint}",
-          "DB_PORT": 3306,
-          "DB_DATABASE": "laravel",
-          "DB_USERNAME": "laravel",
-          "DB_PASSWORD": "<REDACTED>",
-          "AWS_DEFAULT_REGION": "us-east-1"
-        }
+          "APP_DEBUG": "true",
+          "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+          "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+          "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+          "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+        },
+        "stage": "dev",
+        "versionFunctions": true,
+        "deploymentMethod": "direct",
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "WebLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/laravel-dev-web"
+              }
+            },
+            "ArtisanLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/laravel-dev-artisan"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "laravel",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "*"
+                          ],
+                          "Resource": "*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "laravel",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "WebLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+                  "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+                },
+                "Handler": "public/index.php",
+                "Runtime": "provided.al2",
+                "FunctionName": "laravel-dev-web",
+                "MemorySize": 1024,
+                "Timeout": 28,
+                "Environment": {
+                  "Variables": {
+                    "APP_ENV": "production",
+                    "APP_DEBUG": "true",
+                    "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                    "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                    "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                    "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                },
+                "Layers": [
+                  "arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57"
+                ]
+              },
+              "DependsOn": [
+                "WebLogGroup"
+              ]
+            },
+            "ArtisanLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+                  "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+                },
+                "Handler": "artisan",
+                "Runtime": "provided.al2",
+                "FunctionName": "laravel-dev-artisan",
+                "MemorySize": 1024,
+                "Timeout": 720,
+                "Environment": {
+                  "Variables": {
+                    "APP_ENV": "production",
+                    "APP_DEBUG": "true",
+                    "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                    "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                    "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                    "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                },
+                "Layers": [
+                  "arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57"
+                ]
+              },
+              "DependsOn": [
+                "ArtisanLogGroup"
+              ]
+            },
+            "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "WebLambdaFunction"
+                },
+                "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+              }
+            },
+            "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "ArtisanLambdaFunction"
+                },
+                "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+              }
+            },
+            "ArtisanEventsRuleSchedule1": {
+              "Type": "AWS::Events::Rule",
+              "Properties": {
+                "ScheduleExpression": "rate(1 minute)",
+                "State": "ENABLED",
+                "Targets": [
+                  {
+                    "Input": "\"schedule:run\"",
+                    "Arn": {
+                      "Fn::GetAtt": [
+                        "ArtisanLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "Id": "artisanSchedule"
+                  }
+                ]
+              }
+            },
+            "ArtisanLambdaPermissionEventsRuleSchedule1": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "ArtisanLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                  "Fn::GetAtt": [
+                    "ArtisanEventsRuleSchedule1",
+                    "Arn"
+                  ]
+                }
+              }
+            },
+            "ArtisanEventsRuleSchedule2": {
+              "Type": "AWS::Events::Rule",
+              "Properties": {
+                "ScheduleExpression": "rate(1 minute)",
+                "State": "ENABLED",
+                "Targets": [
+                  {
+                    "Input": "\"queue:work --tries=3\"",
+                    "Arn": {
+                      "Fn::GetAtt": [
+                        "ArtisanLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "Id": "artisanSchedule"
+                  }
+                ]
+              }
+            },
+            "ArtisanLambdaPermissionEventsRuleSchedule2": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "ArtisanLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                  "Fn::GetAtt": [
+                    "ArtisanEventsRuleSchedule2",
+                    "Arn"
+                  ]
+                }
+              }
+            },
+            "HttpApi": {
+              "Type": "AWS::ApiGatewayV2::Api",
+              "Properties": {
+                "Name": "dev-laravel",
+                "ProtocolType": "HTTP"
+              }
+            },
+            "HttpApiStage": {
+              "Type": "AWS::ApiGatewayV2::Stage",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "StageName": "$default",
+                "AutoDeploy": true,
+                "DefaultRouteSettings": {
+                  "DetailedMetricsEnabled": false
+                }
+              }
+            },
+            "WebLambdaPermissionHttpApi": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "WebLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "HttpApi"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "HttpApiIntegrationWeb": {
+              "Type": "AWS::ApiGatewayV2::Integration",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "IntegrationType": "AWS_PROXY",
+                "IntegrationUri": {
+                  "Fn::GetAtt": [
+                    "WebLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "PayloadFormatVersion": "2.0",
+                "TimeoutInMillis": 30000
+              }
+            },
+            "HttpApiRouteDefault": {
+              "Type": "AWS::ApiGatewayV2::Route",
+              "Properties": {
+                "ApiId": {
+                  "Ref": "HttpApi"
+                },
+                "RouteKey": "$default",
+                "Target": {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      "integrations",
+                      {
+                        "Ref": "HttpApiIntegrationWeb"
+                      }
+                    ]
+                  ]
+                }
+              },
+              "DependsOn": "HttpApiIntegrationWeb"
+            },
+            "S3Bucket": {
+              "Type": "AWS::S3::Bucket",
+              "Properties": {
+                "BucketName": {
+                  "Fn::Sub": "${AWS::StackName}-aws-storage"
+                },
+                "OwnershipControls": {
+                  "Rules": [
+                    {
+                      "ObjectOwnership": "BucketOwnerEnforced"
+                    }
+                  ]
+                },
+                "PublicAccessBlockConfiguration": {
+                  "BlockPublicAcls": true,
+                  "BlockPublicPolicy": false,
+                  "IgnorePublicAcls": true,
+                  "RestrictPublicBuckets": false
+                }
+              }
+            },
+            "S3BucketPolicy": {
+              "Type": "AWS::S3::BucketPolicy",
+              "Properties": {
+                "Bucket": {
+                  "Ref": "S3Bucket"
+                },
+                "PolicyDocument": {
+                  "Statement": [
+                    {
+                      "Sid": "PublicReadGetObject",
+                      "Effect": "Allow",
+                      "Principal": "*",
+                      "Action": [
+                        "s3:GetObject"
+                      ],
+                      "Resource": {
+                        "Fn::Sub": "${S3Bucket.Arn}/*"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "RDSInstance": {
+              "Type": "AWS::RDS::DBInstance",
+              "Properties": {
+                "DBInstanceIdentifier": {
+                  "Fn::Sub": "${AWS::StackName}-db"
+                },
+                "Engine": "mysql",
+                "EngineVersion": "8.0.35",
+                "DBInstanceClass": "db.t3.micro",
+                "AllocatedStorage": 20,
+                "StorageType": "gp2",
+                "MasterUsername": "laravel",
+                "MasterUserPassword": "<REDACTED>",
+                "BackupRetentionPeriod": 0,
+                "PubliclyAccessible": true,
+                "DeletionProtection": false,
+                "MultiAZ": false,
+                "AutoMinorVersionUpgrade": true
+              }
+            },
+            "LaravelQueue": {
+              "Type": "AWS::SQS::Queue",
+              "Properties": {
+                "QueueName": "laravel-queue"
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+              "Export": {
+                "Name": "sls-laravel-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "WebLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk"
+              },
+              "Export": {
+                "Name": "sls-laravel-dev-WebLambdaFunctionQualifiedArn"
+              }
+            },
+            "ArtisanLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8"
+              },
+              "Export": {
+                "Name": "sls-laravel-dev-ArtisanLambdaFunctionQualifiedArn"
+              }
+            },
+            "HttpApiId": {
+              "Description": "Id of the HTTP API",
+              "Value": {
+                "Ref": "HttpApi"
+              },
+              "Export": {
+                "Name": "sls-laravel-dev-HttpApiId"
+              }
+            },
+            "HttpApiUrl": {
+              "Description": "URL of the HTTP API",
+              "Value": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "https://",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    ".execute-api.",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ".",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    }
+                  ]
+                ]
+              },
+              "Export": {
+                "Name": "sls-laravel-dev-HttpApiUrl"
+              }
+            },
+            "RDSInstanceEndpoint": {
+              "Value": {
+                "Fn::GetAtt": [
+                  "RDSInstance",
+                  "Endpoint.Address"
+                ]
+              }
+            },
+            "S3Bucket": {
+              "Value": {
+                "Ref": "S3Bucket"
+              }
+            },
+            "LaravelQueueUrl": {
+              "Value": {
+                "Ref": "LaravelQueue"
+              }
+            }
+          }
+        },
+        "vpc": {}
       },
       "package": {
         "patterns": [
@@ -37,44 +567,62 @@
           "!database/*.sqlite",
           "!public/build/**",
           "public/build/manifest.json"
-        ]
+        ],
+        "artifactsS3KeyDirname": "serverless/laravel/dev/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+        "artifact": "/var/www/html/.serverless/laravel.zip",
+        "artifactDirectoryName": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z"
       },
       "functions": {
         "web": {
           "handler": "public/index.php",
-          "runtime": "php-82-fpm",
+          "runtime": "provided.al2",
+          "layers": [
+            "arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57"
+          ],
           "timeout": 28,
           "events": [
             {
-              "httpApi": "*"
+              "httpApi": "*",
+              "resolvedMethod": "ANY"
             }
-          ]
+          ],
+          "name": "laravel-dev-web",
+          "package": {},
+          "memory": 1024,
+          "vpc": {},
+          "versionLogicalId": "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk"
         },
-        "artisanSchedule": {
+        "artisan": {
           "handler": "artisan",
-          "runtime": "php-82-console",
-          "timeout": 120,
-          "events": [
-            {
-              "schedule": {
-                "rate": "rate(1 minute)",
-                "input": "\"schedule:run\""
-              }
-            }
-          ]
-        },
-        "artisanQueue": {
-          "handler": "artisan",
-          "runtime": "php-82-console",
+          "runtime": "provided.al2",
+          "layers": [
+            "arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57"
+          ],
           "timeout": 720,
           "events": [
             {
               "schedule": {
-                "rate": "rate(1 minute)",
+                "rate": [
+                  "rate(1 minute)"
+                ],
+                "input": "\"schedule:run\""
+              }
+            },
+            {
+              "schedule": {
+                "rate": [
+                  "rate(1 minute)"
+                ],
                 "input": "\"queue:work --tries=3\""
               }
             }
-          ]
+          ],
+          "name": "laravel-dev-artisan",
+          "package": {},
+          "memory": 1024,
+          "vpc": {},
+          "versionLogicalId": "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8"
         }
       },
       "resources": {
@@ -83,14 +631,43 @@
             "Type": "AWS::S3::Bucket",
             "Properties": {
               "BucketName": {
-                "Fn::Sub": "${AWS::StackName}-storage"
+                "Fn::Sub": "${AWS::StackName}-aws-storage"
               },
-              "AccessControl": "PublicRead",
+              "OwnershipControls": {
+                "Rules": [
+                  {
+                    "ObjectOwnership": "BucketOwnerEnforced"
+                  }
+                ]
+              },
               "PublicAccessBlockConfiguration": {
-                "BlockPublicAcls": false,
+                "BlockPublicAcls": true,
                 "BlockPublicPolicy": false,
-                "IgnorePublicAcls": false,
+                "IgnorePublicAcls": true,
                 "RestrictPublicBuckets": false
+              }
+            }
+          },
+          "S3BucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "S3Bucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Sid": "PublicReadGetObject",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": [
+                      "s3:GetObject"
+                    ],
+                    "Resource": {
+                      "Fn::Sub": "${S3Bucket.Arn}/*"
+                    }
+                  }
+                ]
               }
             }
           },
@@ -141,26 +718,555 @@
             }
           }
         }
+      },
+      "custom": {
+        "apiGatewayBaseUrl": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/"
       }
     },
     "provider": {
       "name": "aws",
-      "region": "us-east-1",
+      "region": "ap-south-1",
+      "runtime": "provided.al2",
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "cfnRole": "arn:aws:iam::870968578789:role/CloudFormationExecutionRole",
       "environment": {
         "APP_ENV": "production",
-        "APP_KEY": "base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=",
-        "SESSION_DRIVER": "cookie",
-        "QUEUE_CONNECTION": "sqs",
-        "FILESYSTEM_DISK": "s3",
-        "S3_BUCKET": "${cf:laravel.S3Bucket}",
-        "DB_CONNECTION": "mysql",
-        "DB_HOST": "${cf:laravel.RDSInstanceEndpoint}",
-        "DB_PORT": 3306,
-        "DB_DATABASE": "laravel",
-        "DB_USERNAME": "laravel",
-        "DB_PASSWORD": "<REDACTED>",
-        "AWS_DEFAULT_REGION": "us-east-1"
-      }
+        "APP_DEBUG": "true",
+        "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+        "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+        "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+        "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+      },
+      "stage": "dev",
+      "versionFunctions": true,
+      "deploymentMethod": "direct",
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "WebLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/laravel-dev-web"
+            }
+          },
+          "ArtisanLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/laravel-dev-artisan"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "laravel",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "*"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "laravel",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "WebLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+                "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+              },
+              "Handler": "public/index.php",
+              "Runtime": "provided.al2",
+              "FunctionName": "laravel-dev-web",
+              "MemorySize": 1024,
+              "Timeout": 28,
+              "Environment": {
+                "Variables": {
+                  "APP_ENV": "production",
+                  "APP_DEBUG": "true",
+                  "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                  "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                  "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                  "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57"
+              ]
+            },
+            "DependsOn": [
+              "WebLogGroup"
+            ]
+          },
+          "ArtisanLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+                "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+              },
+              "Handler": "artisan",
+              "Runtime": "provided.al2",
+              "FunctionName": "laravel-dev-artisan",
+              "MemorySize": 1024,
+              "Timeout": 720,
+              "Environment": {
+                "Variables": {
+                  "APP_ENV": "production",
+                  "APP_DEBUG": "true",
+                  "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                  "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                  "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                  "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Layers": [
+                "arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57"
+              ]
+            },
+            "DependsOn": [
+              "ArtisanLogGroup"
+            ]
+          },
+          "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "WebLambdaFunction"
+              },
+              "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+            }
+          },
+          "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ArtisanLambdaFunction"
+              },
+              "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+            }
+          },
+          "ArtisanEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(1 minute)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Input": "\"schedule:run\"",
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "ArtisanLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "artisanSchedule"
+                }
+              ]
+            }
+          },
+          "ArtisanLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ArtisanLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "ArtisanEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "ArtisanEventsRuleSchedule2": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(1 minute)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Input": "\"queue:work --tries=3\"",
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "ArtisanLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "artisanSchedule"
+                }
+              ]
+            }
+          },
+          "ArtisanLambdaPermissionEventsRuleSchedule2": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ArtisanLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "ArtisanEventsRuleSchedule2",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-laravel",
+              "ProtocolType": "HTTP"
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "WebLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "WebLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationWeb": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "Fn::GetAtt": [
+                  "WebLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteDefault": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "$default",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationWeb"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationWeb"
+          },
+          "S3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": {
+                "Fn::Sub": "${AWS::StackName}-aws-storage"
+              },
+              "OwnershipControls": {
+                "Rules": [
+                  {
+                    "ObjectOwnership": "BucketOwnerEnforced"
+                  }
+                ]
+              },
+              "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": true,
+                "BlockPublicPolicy": false,
+                "IgnorePublicAcls": true,
+                "RestrictPublicBuckets": false
+              }
+            }
+          },
+          "S3BucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "S3Bucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Sid": "PublicReadGetObject",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": [
+                      "s3:GetObject"
+                    ],
+                    "Resource": {
+                      "Fn::Sub": "${S3Bucket.Arn}/*"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "RDSInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+              "DBInstanceIdentifier": {
+                "Fn::Sub": "${AWS::StackName}-db"
+              },
+              "Engine": "mysql",
+              "EngineVersion": "8.0.35",
+              "DBInstanceClass": "db.t3.micro",
+              "AllocatedStorage": 20,
+              "StorageType": "gp2",
+              "MasterUsername": "laravel",
+              "MasterUserPassword": "<REDACTED>",
+              "BackupRetentionPeriod": 0,
+              "PubliclyAccessible": true,
+              "DeletionProtection": false,
+              "MultiAZ": false,
+              "AutoMinorVersionUpgrade": true
+            }
+          },
+          "LaravelQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "laravel-queue"
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+            "Export": {
+              "Name": "sls-laravel-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "WebLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk"
+            },
+            "Export": {
+              "Name": "sls-laravel-dev-WebLambdaFunctionQualifiedArn"
+            }
+          },
+          "ArtisanLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8"
+            },
+            "Export": {
+              "Name": "sls-laravel-dev-ArtisanLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-laravel-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-laravel-dev-HttpApiUrl"
+            }
+          },
+          "RDSInstanceEndpoint": {
+            "Value": {
+              "Fn::GetAtt": [
+                "RDSInstance",
+                "Endpoint.Address"
+              ]
+            }
+          },
+          "S3Bucket": {
+            "Value": {
+              "Ref": "S3Bucket"
+            }
+          },
+          "LaravelQueueUrl": {
+            "Value": {
+              "Ref": "LaravelQueue"
+            }
+          }
+        }
+      },
+      "vpc": {}
     },
     "dashboard": {
       "isEnabledForService": false,
@@ -171,12 +1277,7 @@
       "serviceProvider": null,
       "instanceParameters": null
     },
-    "error": {
-      "message": "Cannot resolve '${cf:laravel.RDSInstanceEndpoint}' variable at 'provider.environment.DB_HOST'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.",
-      "stack": "Error: Cannot resolve '${cf:laravel.RDSInstanceEndpoint}' variable at 'provider.environment.DB_HOST'. No value is available for this variable, and no default value was provided. Please check your variable definitions or provide a default value.\n    at _ResolverManager.resolve (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:31915)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async #handlePlaceholderNode (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:30122)\n    at async file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:27994\n    at async processNodeAndHandleCompletion (file:///root/.serverless/releases/4.17.1/package/dist/sf-core.js:831:16773)",
-      "code": "MISSING_VARIABLE_RESULT"
-    },
-    "serviceRawFile": "service: laravel\n\n# bref:\n#   team: laravel-aws\n\nprovider:\n  name: aws\n  region: us-east-1\n  environment:\n    APP_ENV: production\n    APP_KEY: base64:Jp7VLYLg7NnG01544cWz5AIH24egyl0ctLqw+QDtUec=\n    SESSION_DRIVER: cookie\n    QUEUE_CONNECTION: sqs\n    FILESYSTEM_DISK: s3\n    S3_BUCKET: ${cf:laravel.S3Bucket} # reference the created S3 bucket\n    DB_CONNECTION: mysql\n    DB_HOST: ${cf:laravel.RDSInstanceEndpoint}\n    DB_PORT: 3306\n    DB_DATABASE: laravel\n    DB_USERNAME: laravel\n    DB_PASSWORD: laravelpass\n    AWS_DEFAULT_REGION: us-east-1\n\npackage:\n  patterns:\n    - '!node_modules/**'\n    - '!public/storage'\n    - '!resources/assets/**'\n    - '!resources/css/**'\n    - '!resources/images/**'\n    - '!resources/js/**'\n    - '!storage/**'\n    - '!tests/**'\n    - '!database/*.sqlite'\n    - '!public/build/**'\n    - 'public/build/manifest.json'\n\nfunctions:\n  web:\n    handler: public/index.php\n    runtime: php-82-fpm\n    timeout: 28\n    events:\n      - httpApi: '*'\n\n  artisanSchedule:\n    handler: artisan\n    runtime: php-82-console\n    timeout: 120\n    events:\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"schedule:run\"'\n\n  artisanQueue:\n    handler: artisan\n    runtime: php-82-console\n    timeout: 720\n    events:\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"queue:work --tries=3\"'\n\nresources:\n  Resources:\n\n    # 📁 S3 Bucket for file storage\n    S3Bucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: !Sub '${AWS::StackName}-storage'\n        AccessControl: PublicRead #makes all uploaded objects publicly readable\n        PublicAccessBlockConfiguration:\n          BlockPublicAcls: false\n          BlockPublicPolicy: false\n          IgnorePublicAcls: false\n          RestrictPublicBuckets: false\n\n    # 🐘 RDS Instance (MySQL)\n    RDSInstance:\n      Type: AWS::RDS::DBInstance\n      Properties:\n        DBInstanceIdentifier: !Sub '${AWS::StackName}-db'\n        Engine: mysql\n        EngineVersion: 8.0.35\n        DBInstanceClass: db.t3.micro   #Free Tier eligible\n        AllocatedStorage: 20           #Up to 20GB free\n        StorageType: gp2               #Default general purpose SSD\n        MasterUsername: laravel\n        MasterUserPassword: laravelpass\n        BackupRetentionPeriod: 0\n        PubliclyAccessible: true\n        DeletionProtection: false\n        MultiAZ: false                 #Disable high availability (free tier doesn’t support)\n        AutoMinorVersionUpgrade: true\n\n    # 📬 SQS Queue for Laravel jobs\n    LaravelQueue:\n      Type: AWS::SQS::Queue\n      Properties:\n        QueueName: laravel-queue\n\n  Outputs:\n    RDSInstanceEndpoint:\n      Value: !GetAtt RDSInstance.Endpoint.Address\n    S3Bucket:\n      Value: !Ref S3Bucket\n    LaravelQueueUrl:\n      Value: !Ref LaravelQueue\n",
+    "serviceRawFile": "service: laravel\n\n# bref:\n#   team: laravel-aws\n\nframeworkVersion: '4'\n\nplugins:\n  - ./vendor/bref/bref\n\n\nprovider:\n  name: aws\n  region: ap-south-1\n  runtime: provided.al2\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - '*'\n          Resource: '*'\n  cfnRole: arn:aws:iam::870968578789:role/CloudFormationExecutionRole\n  environment:\n    APP_ENV: production\n    APP_DEBUG: true\n    # Inject dynamic base URL\n    APP_URL: ${self:custom.apiGatewayBaseUrl}\n    BASE_URL: ${self:custom.apiGatewayBaseUrl}/\n    OAUTH_REDIRECT_URL: ${self:custom.apiGatewayBaseUrl}/login/github/callback\n    GOOGLE_REDIRECT: ${self:custom.apiGatewayBaseUrl}/login/google/callback\n\npackage:\n  patterns:\n    - '!node_modules/**'\n    - '!public/storage'\n    - '!resources/assets/**'\n    - '!resources/css/**'\n    - '!resources/images/**'\n    - '!resources/js/**'\n    - '!storage/**'\n    - '!tests/**'\n    - '!database/*.sqlite'\n    - '!public/build/**'\n    - 'public/build/manifest.json'\n\nfunctions:\n  web:\n    handler: public/index.php\n    runtime: provided.al2\n    layers:\n      - arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57\n    timeout: 28\n    events:\n      - httpApi: '*'\n\n  artisan:\n    handler: artisan\n    runtime: provided.al2\n    layers:\n      - arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57\n    timeout: 720\n    events:\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"schedule:run\"'\n      - schedule:\n          rate: rate(1 minute)\n          input: '\"queue:work --tries=3\"'\n\nresources:\n  Resources:\n\n    #S3 Bucket for file storage\n    S3Bucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: !Sub '${AWS::StackName}-aws-storage'\n        OwnershipControls:\n          Rules:\n            - ObjectOwnership: BucketOwnerEnforced\n        PublicAccessBlockConfiguration:\n          BlockPublicAcls: true\n          BlockPublicPolicy: false\n          IgnorePublicAcls: true\n          RestrictPublicBuckets: false\n\n    S3BucketPolicy:\n      Type: AWS::S3::BucketPolicy\n      Properties:\n        Bucket: !Ref S3Bucket\n        PolicyDocument:\n          Statement:\n            - Sid: PublicReadGetObject\n              Effect: Allow\n              Principal: \"*\"\n              Action:\n                - s3:GetObject\n              Resource: !Sub '${S3Bucket.Arn}/*'\n\n    #RDS Instance (MySQL)\n    RDSInstance:\n      Type: AWS::RDS::DBInstance\n      Properties:\n        DBInstanceIdentifier: !Sub '${AWS::StackName}-db'\n        Engine: mysql\n        EngineVersion: 8.0.35\n        DBInstanceClass: db.t3.micro   #Free Tier eligible\n        AllocatedStorage: 20           #Up to 20GB free\n        StorageType: gp2               #Default general purpose SSD\n        MasterUsername: laravel\n        MasterUserPassword: laravelpass\n        BackupRetentionPeriod: 0\n        PubliclyAccessible: true\n        DeletionProtection: false\n        MultiAZ: false                 #Disable high availability (free tier doesn’t support)\n        AutoMinorVersionUpgrade: true\n\n    #SQS Queue for Laravel jobs\n    LaravelQueue:\n      Type: AWS::SQS::Queue\n      Properties:\n        QueueName: laravel-queue\n\n  Outputs:\n    RDSInstanceEndpoint:\n      Value: !GetAtt RDSInstance.Endpoint.Address\n    S3Bucket:\n      Value: !Ref S3Bucket\n    LaravelQueueUrl:\n      Value: !Ref LaravelQueue\n\ncustom:\n  apiGatewayBaseUrl: hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/  #Update after first deploy\n",
     "command": [
       "deploy"
     ],
@@ -185,10 +1286,568 @@
     "orgName": "parthnakum37",
     "userId": "GKglMdDfGgCJvkrLzp",
     "userName": "parthnakum37",
-    "serviceProviderAwsCfStackId": null,
-    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsAccountId": "870968578789",
+    "serviceProviderAwsCfStackName": "laravel-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-south-1:870968578789:stack/laravel-dev/657a9d40-61fd-11f0-82cb-02bf696762eb",
+    "serviceProviderAwsCfStackCreated": "2025-07-16T04:29:00.684Z",
     "serviceProviderAwsCfStackUpdated": null,
-    "serviceProviderAwsCfStackStatus": null,
-    "serviceProviderAwsCfStackOutputs": null
+    "serviceProviderAwsCfStackStatus": "CREATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "S3Bucket",
+        "OutputValue": "laravel-dev-aws-storage"
+      },
+      {
+        "OutputKey": "RDSInstanceEndpoint",
+        "OutputValue": "laravel-dev-db.cvu4m8s04c94.ap-south-1.rds.amazonaws.com"
+      },
+      {
+        "OutputKey": "WebLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-south-1:870968578789:function:laravel-dev-web:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-laravel-dev-WebLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "hzbjgg356b",
+        "Description": "Id of the HTTP API",
+        "ExportName": "sls-laravel-dev-HttpApiId"
+      },
+      {
+        "OutputKey": "LaravelQueueUrl",
+        "OutputValue": "https://sqs.ap-south-1.amazonaws.com/870968578789/laravel-queue"
+      },
+      {
+        "OutputKey": "ArtisanLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-south-1:870968578789:function:laravel-dev-artisan:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-laravel-dev-ArtisanLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+        "ExportName": "sls-laravel-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://hzbjgg356b.execute-api.ap-south-1.amazonaws.com",
+        "Description": "URL of the HTTP API",
+        "ExportName": "sls-laravel-dev-HttpApiUrl"
+      }
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "WebLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/laravel-dev-web"
+          }
+        },
+        "ArtisanLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/laravel-dev-artisan"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "laravel",
+                      "dev",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "*"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "laravel",
+                  "dev",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "WebLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+              "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+            },
+            "Handler": "public/index.php",
+            "Runtime": "provided.al2",
+            "FunctionName": "laravel-dev-web",
+            "MemorySize": 1024,
+            "Timeout": 28,
+            "Environment": {
+              "Variables": {
+                "APP_ENV": "production",
+                "APP_DEBUG": "true",
+                "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            },
+            "Layers": [
+              "arn:aws:lambda:ap-south-1:534081306603:layer:php-83-fpm:57"
+            ]
+          },
+          "DependsOn": [
+            "WebLogGroup"
+          ]
+        },
+        "ArtisanLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+              "S3Key": "serverless/laravel/dev/1752640136540-2025-07-16T04:28:56.540Z/laravel.zip"
+            },
+            "Handler": "artisan",
+            "Runtime": "provided.al2",
+            "FunctionName": "laravel-dev-artisan",
+            "MemorySize": 1024,
+            "Timeout": 720,
+            "Environment": {
+              "Variables": {
+                "APP_ENV": "production",
+                "APP_DEBUG": "true",
+                "APP_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com/",
+                "BASE_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//",
+                "OAUTH_REDIRECT_URL": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/github/callback",
+                "GOOGLE_REDIRECT": "hfbrjygm7c.execute-api.ap-south-1.amazonaws.com//login/google/callback"
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            },
+            "Layers": [
+              "arn:aws:lambda:ap-south-1:534081306603:layer:php-83:57"
+            ]
+          },
+          "DependsOn": [
+            "ArtisanLogGroup"
+          ]
+        },
+        "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "WebLambdaFunction"
+            },
+            "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+          }
+        },
+        "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "ArtisanLambdaFunction"
+            },
+            "CodeSha256": "7msdHB8ZLVIF39fAWsmEkIx2dEi0wVHrwAYVmQC1EI8="
+          }
+        },
+        "ArtisanEventsRuleSchedule1": {
+          "Type": "AWS::Events::Rule",
+          "Properties": {
+            "ScheduleExpression": "rate(1 minute)",
+            "State": "ENABLED",
+            "Targets": [
+              {
+                "Input": "\"schedule:run\"",
+                "Arn": {
+                  "Fn::GetAtt": [
+                    "ArtisanLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Id": "artisanSchedule"
+              }
+            ]
+          }
+        },
+        "ArtisanLambdaPermissionEventsRuleSchedule1": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "ArtisanLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "events.amazonaws.com",
+            "SourceArn": {
+              "Fn::GetAtt": [
+                "ArtisanEventsRuleSchedule1",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "ArtisanEventsRuleSchedule2": {
+          "Type": "AWS::Events::Rule",
+          "Properties": {
+            "ScheduleExpression": "rate(1 minute)",
+            "State": "ENABLED",
+            "Targets": [
+              {
+                "Input": "\"queue:work --tries=3\"",
+                "Arn": {
+                  "Fn::GetAtt": [
+                    "ArtisanLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Id": "artisanSchedule"
+              }
+            ]
+          }
+        },
+        "ArtisanLambdaPermissionEventsRuleSchedule2": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "ArtisanLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "events.amazonaws.com",
+            "SourceArn": {
+              "Fn::GetAtt": [
+                "ArtisanEventsRuleSchedule2",
+                "Arn"
+              ]
+            }
+          }
+        },
+        "HttpApi": {
+          "Type": "AWS::ApiGatewayV2::Api",
+          "Properties": {
+            "Name": "dev-laravel",
+            "ProtocolType": "HTTP"
+          }
+        },
+        "HttpApiStage": {
+          "Type": "AWS::ApiGatewayV2::Stage",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "StageName": "$default",
+            "AutoDeploy": true,
+            "DefaultRouteSettings": {
+              "DetailedMetricsEnabled": false
+            }
+          }
+        },
+        "WebLambdaPermissionHttpApi": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "WebLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "apigateway.amazonaws.com",
+            "SourceArn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":execute-api:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  "/*"
+                ]
+              ]
+            }
+          }
+        },
+        "HttpApiIntegrationWeb": {
+          "Type": "AWS::ApiGatewayV2::Integration",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": {
+              "Fn::GetAtt": [
+                "WebLambdaFunction",
+                "Arn"
+              ]
+            },
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+          }
+        },
+        "HttpApiRouteDefault": {
+          "Type": "AWS::ApiGatewayV2::Route",
+          "Properties": {
+            "ApiId": {
+              "Ref": "HttpApi"
+            },
+            "RouteKey": "$default",
+            "Target": {
+              "Fn::Join": [
+                "/",
+                [
+                  "integrations",
+                  {
+                    "Ref": "HttpApiIntegrationWeb"
+                  }
+                ]
+              ]
+            }
+          },
+          "DependsOn": "HttpApiIntegrationWeb"
+        },
+        "S3Bucket": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": {
+              "Fn::Sub": "${AWS::StackName}-aws-storage"
+            },
+            "OwnershipControls": {
+              "Rules": [
+                {
+                  "ObjectOwnership": "BucketOwnerEnforced"
+                }
+              ]
+            },
+            "PublicAccessBlockConfiguration": {
+              "BlockPublicAcls": true,
+              "BlockPublicPolicy": false,
+              "IgnorePublicAcls": true,
+              "RestrictPublicBuckets": false
+            }
+          }
+        },
+        "S3BucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+            "Bucket": {
+              "Ref": "S3Bucket"
+            },
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Sid": "PublicReadGetObject",
+                  "Effect": "Allow",
+                  "Principal": "*",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${S3Bucket.Arn}/*"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "RDSInstance": {
+          "Type": "AWS::RDS::DBInstance",
+          "Properties": {
+            "DBInstanceIdentifier": {
+              "Fn::Sub": "${AWS::StackName}-db"
+            },
+            "Engine": "mysql",
+            "EngineVersion": "8.0.35",
+            "DBInstanceClass": "db.t3.micro",
+            "AllocatedStorage": 20,
+            "StorageType": "gp2",
+            "MasterUsername": "laravel",
+            "MasterUserPassword": "<REDACTED>",
+            "BackupRetentionPeriod": 0,
+            "PubliclyAccessible": true,
+            "DeletionProtection": false,
+            "MultiAZ": false,
+            "AutoMinorVersionUpgrade": true
+          }
+        },
+        "LaravelQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "laravel-queue"
+          }
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-ap-south-1-93d75a5c-b2b6",
+          "Export": {
+            "Name": "sls-laravel-dev-ServerlessDeploymentBucketName"
+          }
+        },
+        "WebLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "WebLambdaVersionXnFVohVCyW4D0ZmKUMS75N0tPzvWzkf9kKYJWleyzEk"
+          },
+          "Export": {
+            "Name": "sls-laravel-dev-WebLambdaFunctionQualifiedArn"
+          }
+        },
+        "ArtisanLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "ArtisanLambdaVersion7CGe6PH9jM1XEuyYK0DtF7sQCwMZCY3G1Db69G6bfp8"
+          },
+          "Export": {
+            "Name": "sls-laravel-dev-ArtisanLambdaFunctionQualifiedArn"
+          }
+        },
+        "HttpApiId": {
+          "Description": "Id of the HTTP API",
+          "Value": {
+            "Ref": "HttpApi"
+          },
+          "Export": {
+            "Name": "sls-laravel-dev-HttpApiId"
+          }
+        },
+        "HttpApiUrl": {
+          "Description": "URL of the HTTP API",
+          "Value": {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Ref": "HttpApi"
+                },
+                ".execute-api.",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ".",
+                {
+                  "Ref": "AWS::URLSuffix"
+                }
+              ]
+            ]
+          },
+          "Export": {
+            "Name": "sls-laravel-dev-HttpApiUrl"
+          }
+        },
+        "RDSInstanceEndpoint": {
+          "Value": {
+            "Fn::GetAtt": [
+              "RDSInstance",
+              "Endpoint.Address"
+            ]
+          }
+        },
+        "S3Bucket": {
+          "Value": {
+            "Ref": "S3Bucket"
+          }
+        },
+        "LaravelQueueUrl": {
+          "Value": {
+            "Ref": "LaravelQueue"
+          }
+        }
+      }
+    }
   }
 }
