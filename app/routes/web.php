@@ -18,6 +18,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\NotificationController;
 use App\Models\Product;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -224,4 +225,10 @@ Route::get('/test/queueMonitor', function () {
     } else {
         return 'Access denied!';
     }
+});
+
+
+Route::get('/clear-cache', function () {
+    Log::info('Clear cache route hit.');
+    return response()->json(['status' => 'ok']);
 });
